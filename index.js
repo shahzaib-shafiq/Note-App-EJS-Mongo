@@ -31,6 +31,7 @@ app.get('/read', async function (req, res) {
 });
 
 
+
   app.post('/create', async function (req, res) {
     let {Name,Email,Image}=req.body
     let createdUser=await userModel.create({
@@ -53,5 +54,39 @@ app.get('/read', async function (req, res) {
     res.redirect("/read")
   })
 
+  app.get("/edit/:userid",async(req,res)=>{
+let user=await userModel.findOne({_id:req.params.userid});
+res.render('edit',{user})
+  })
   
+  app.post("/update/:userid", async (req, res) => {
+    const { Name, Email, Image } = req.body;
+
+    try {
+        // Check if the user ID is provided
+        if (!req.params.userid) {
+            return res.status(400).json({ error: "User ID is required" });
+        }
+
+        // Attempt to update the user
+        const user = await userModel.findOneAndUpdate(
+            { _id: req.params.userid },
+            { name:Name, email:Email,image: Image },
+            { new: true, runValidators: true } 
+        );
+
+        // Check if the user was found and updated
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        
+        res.redirect("/read");
+    } catch (error) {
+        console.error("Error updating user:", error);
+        res.status(500).json({ error: "An error occurred while updating the user" });
+    }
+});
+
+
 app.listen(3000)
